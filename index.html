@@ -1,0 +1,521 @@
+﻿<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repülőjárat- és Reptérnyilvántartó Rendszer</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --primary: #1f4e79;
+      --accent: #f59e0b;
+      --danger: #dc2626;
+      --muted: #617d98;
+      --border: #d6dae0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: #172b4d;
+    }
+
+    header {
+      padding: 24px 28px;
+      background: linear-gradient(135deg, #1f4e79 0%, #2563eb 100%);
+      color: white;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 2.2vw, 2.4rem);
+    }
+
+    header p {
+      margin: 0;
+      max-width: 54rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,.85);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 36px));
+      margin: -18px auto 40px;
+      padding: 24px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+    }
+
+    .controls {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr auto;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    label {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    select,
+    input,
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    select,
+    input {
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-width: 220px;
+      color: #0f172a;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e5e9f2;
+      vertical-align: middle;
+    }
+
+    th {
+      font-size: 0.95rem;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    tbody tr:hover {
+      background: #f9fbff;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .small {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      border-radius: 10px;
+    }
+
+    .secondary {
+      background: #e2e8f0;
+      color: #1f2937;
+    }
+
+    .danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .empty-state {
+      padding: 28px 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      z-index: 20;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(700px, 100%);
+      background: white;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+      position: relative;
+    }
+
+    .modal-card h2 {
+      margin-top: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-weight: 600;
+      display: block;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .close-button {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #0f172a;
+      display: grid;
+      place-items: center;
+      font-size: 1.25rem;
+    }
+
+    @media (max-width: 720px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Repülőjárat- és Reptérnyilvántartó Rendszer</h1>
+    <p>Válassz indulási repülőteret a legördülő menüből, majd tekintsd meg az adott reptérről induló járatokat. Új járat hozzáadása, szerkesztése és törlése egy helyen.</p>
+  </header>
+
+  <main class="page">
+    <section class="panel">
+      <div class="controls">
+        <label for="airportSelect">Indulási reptér:
+          <select id="airportSelect"></select>
+        </label>
+        <button class="primary" id="addFlightButton">Új járat hozzáadása</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Indulási reptér</th>
+              <th>Indulási idő</th>
+              <th>Érkezési reptér</th>
+              <th>Érkezési idő</th>
+              <th>Költség</th>
+              <th>Menetidő</th>
+              <th>Műveletek</th>
+            </tr>
+          </thead>
+          <tbody id="flightTableBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state">Nincsenek megjeleníthető járatok.</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="flightModal">
+    <div class="modal-card">
+      <button class="close-button" id="closeModalButton" title="Bezárás">×</button>
+      <h2 id="modalTitle">Új járat hozzáadása</h2>
+      <form id="flightForm">
+        <div class="grid-2">
+          <div class="field">
+            <label for="departureAirport">Indulási reptér</label>
+            <select id="departureAirport" required></select>
+          </div>
+          <div class="field">
+            <label for="arrivalAirport">Érkezési reptér</label>
+            <select id="arrivalAirport" required></select>
+          </div>
+          <div class="field">
+            <label for="departureTime">Indulási idő</label>
+            <input type="datetime-local" id="departureTime" required />
+          </div>
+          <div class="field">
+            <label for="arrivalTime">Érkezési idő</label>
+            <input type="datetime-local" id="arrivalTime" required />
+          </div>
+          <div class="field">
+            <label for="cost">Utazási költség</label>
+            <input type="number" id="cost" min="0" step="0.01" required />
+          </div>
+          <div class="field">
+            <label for="duration">Menetidő</label>
+            <input type="text" id="duration" placeholder="pl. 2h 15m" required />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" id="cancelButton">Mégse</button>
+          <button type="submit" class="primary" id="saveButton">Mentés</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = '/api';
+    const state = {
+      airports: [],
+      selectedAirportId: null,
+      editingFlight: null
+    };
+
+    const airportSelect = document.getElementById('airportSelect');
+    const flightTableBody = document.getElementById('flightTableBody');
+    const emptyState = document.getElementById('emptyState');
+    const flightModal = document.getElementById('flightModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const flightForm = document.getElementById('flightForm');
+    const departureAirportInput = document.getElementById('departureAirport');
+    const arrivalAirportInput = document.getElementById('arrivalAirport');
+    const departureTimeInput = document.getElementById('departureTime');
+    const arrivalTimeInput = document.getElementById('arrivalTime');
+    const costInput = document.getElementById('cost');
+    const durationInput = document.getElementById('duration');
+
+    document.getElementById('addFlightButton').addEventListener('click', () => openModal());
+    document.getElementById('closeModalButton').addEventListener('click', closeModal);
+    document.getElementById('cancelButton').addEventListener('click', closeModal);
+    airportSelect.addEventListener('change', handleAirportChange);
+    flightForm.addEventListener('submit', handleFormSubmit);
+
+    async function fetchAirports() {
+      const response = await fetch(`${apiBase}/airports`);
+      state.airports = await response.json();
+      populateAirportSelectors();
+      if (!state.selectedAirportId && state.airports.length > 0) {
+        state.selectedAirportId = state.airports[0].id;
+      }
+      airportSelect.value = state.selectedAirportId;
+      await fetchFlights();
+    }
+
+    function populateAirportSelectors() {
+      const options = state.airports.map(airport => `<option value="${airport.id}">${airport.name} (${airport.code})</option>`).join('');
+      airportSelect.innerHTML = options;
+      departureAirportInput.innerHTML = options;
+      arrivalAirportInput.innerHTML = options;
+    }
+
+    async function fetchFlights() {
+      if (!state.selectedAirportId) {
+        flightTableBody.innerHTML = '';
+        emptyState.textContent = 'Nincs kiválasztott indulási reptér.';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      const response = await fetch(`${apiBase}/flights?departureAirportId=${state.selectedAirportId}`);
+      const flights = await response.json();
+      renderFlights(flights);
+    }
+
+    function renderFlights(flights) {
+      if (!flights || flights.length === 0) {
+        flightTableBody.innerHTML = '';
+        emptyState.textContent = 'Nincsenek megjeleníthető járatok.';
+        emptyState.style.display = 'block';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      flightTableBody.innerHTML = flights.map(flight => `
+        <tr>
+          <td>${escapeHtml(flight.departureAirport)} (${escapeHtml(flight.departureAirportCode)})</td>
+          <td>${formatDateTime(flight.departureTime)}</td>
+          <td>${escapeHtml(flight.arrivalAirport)} (${escapeHtml(flight.arrivalAirportCode)})</td>
+          <td>${formatDateTime(flight.arrivalTime)}</td>
+          <td>${Number(flight.cost).toFixed(2)} €</td>
+          <td>${escapeHtml(flight.duration)}</td>
+          <td class="actions">
+            <button class="small secondary" type="button" onclick="openEditModal(${flight.id})">Szerkesztés</button>
+            <button class="small danger" type="button" onclick="deleteFlight(${flight.id})">Törlés</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handleAirportChange(event) {
+      state.selectedAirportId = Number(event.target.value);
+      fetchFlights();
+    }
+
+    function openModal(flight = null) {
+      state.editingFlight = flight;
+      modalTitle.textContent = flight ? 'Járat szerkesztése' : 'Új járat hozzáadása';
+      flightModal.classList.remove('hidden');
+
+      if (flight) {
+        departureAirportInput.value = flight.departureAirportId;
+        arrivalAirportInput.value = flight.arrivalAirportId;
+        departureTimeInput.value = flight.departureTime;
+        arrivalTimeInput.value = flight.arrivalTime;
+        costInput.value = flight.cost;
+        durationInput.value = flight.duration;
+      } else {
+        departureAirportInput.value = state.selectedAirportId;
+        arrivalAirportInput.value = state.airports.length > 1 ? state.airports.find(a => a.id !== state.selectedAirportId).id : state.selectedAirportId;
+        departureTimeInput.value = '';
+        arrivalTimeInput.value = '';
+        costInput.value = '';
+        durationInput.value = '';
+      }
+    }
+
+    function closeModal() {
+      state.editingFlight = null;
+      flightModal.classList.add('hidden');
+      flightForm.reset();
+    }
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      const payload = {
+        departureAirportId: Number(departureAirportInput.value),
+        arrivalAirportId: Number(arrivalAirportInput.value),
+        departureTime: departureTimeInput.value,
+        arrivalTime: arrivalTimeInput.value,
+        cost: Number(costInput.value),
+        duration: durationInput.value.trim()
+      };
+
+      const url = state.editingFlight ? `${apiBase}/flights/${state.editingFlight.id}` : `${apiBase}/flights`;
+      const method = state.editingFlight ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Hiba történt a mentés során.');
+        return;
+      }
+
+      closeModal();
+      await fetchFlights();
+    }
+
+    async function deleteFlight(flightId) {
+      if (!confirm('Biztosan törölni szeretnéd ezt a járatot?')) {
+        return;
+      }
+
+      const response = await fetch(`${apiBase}/flights/${flightId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Hiba történt a törlés során.');
+        return;
+      }
+
+      await fetchFlights();
+    }
+
+    function formatDateTime(value) {
+      try {
+        const date = new Date(value);
+        return new Intl.DateTimeFormat('hu-HU', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        }).format(date);
+      } catch {
+        return value;
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.openEditModal = async function (flightId) {
+      const response = await fetch(`${apiBase}/flights?departureAirportId=${state.selectedAirportId}`);
+      const flights = await response.json();
+      const flight = flights.find(item => item.id === flightId);
+      if (flight) {
+        openModal(flight);
+      }
+    };
+
+    window.deleteFlight = deleteFlight;
+
+    fetchAirports();
+  </script>
+</body>
+</html>
